@@ -31,12 +31,12 @@ METADATA = dict(
   description='College project for analysing data from Twitter',
   license='GPL',
   url='https://github.com/agavrilovic/twitter-analysis-croatia',
-  keywords='twitter analysis croatia',
+  keywords='twitter analysis croatia'
 )
 
 # Extra package metadata to be used only if setuptools is installed
 SETUPTOOLS_METADATA = dict(
-  install_requires = ['setuptools'],
+  install_requires = ['setuptools', 'simplejson', 'oauth2', 'python-twitter'>=0.8, 'httplib2'],
   include_package_data = True,
   classifiers = [
     'Development Status :: 4 - Beta',

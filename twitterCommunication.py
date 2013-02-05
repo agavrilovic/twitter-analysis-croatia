@@ -85,17 +85,21 @@ def main():
         print "\"where X\" to print out if X has a known location!"
     if sys.argv[1]=="newest":
         print connection.getTweetText(sys.argv[2], 0)
-    if sys.argv[1]=="location":
+    if sys.argv[1]=="where":
         if (connection.getUser(sys.argv[2]).geo_enabled == True):
             print "The user has enabled geotagging, printing locations:"
-            for k in range[0, 20]:
-                place=connection.getTweetPlace(sys.argv[2], k)
-                if place!=None:
-                    print place
-                else:
-                    print "Hidden location"
-    if sys.argv[2]=="follows":
-        print connection.getFollowersNames(sys.argv[1])
+            place=connection.getTweetPlace(sys.argv[2], 1)['name']
+            if place!=None:
+                print place
+            else:
+                print "Location not specified"
+        else:
+            print "GEO not enabled"
+    try:
+        if sys.argv[2]=="follows":
+            print connection.getFollowersNames(sys.argv[1])
+    except IndexError:
+        pass
 
         
 if __name__ == "__main__":
