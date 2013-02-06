@@ -40,7 +40,7 @@ def main():
     except IndexError:
         verbose = True
 
-    if file="help":
+    if file=="help":
         print "Use exampleModule like this: "
         print "python exampleModule.py filename [user] [verbosity]"
     

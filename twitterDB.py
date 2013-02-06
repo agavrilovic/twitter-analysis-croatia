@@ -107,13 +107,16 @@ def main():
     if arg[2]=="get":
         if arg[3]=="all":
             if arg[4]=="":
-                print myDB.getAllTweets()
+                for tweet in myDB.getTweets():
+                    print tweet.text
             else:
-                print myDB.getAllTweetsFromUser(arg[4])
+                for tweet in myDB.getAllTweetsFromUser(arg[4]):
+                    print tweet.text
         else:
-            print myDB.getTweet(arg[2])
+            print myDB.getTweet(arg[2]).text
     else:
-        print "file get \[all\] \[USER\] to print tweets"
+        print "Use twitterDB like this: "
+        print "python twitterDB.py file get \[all\] \[USER\] to print tweets"
         
 if __name__ == "__main__":
     main()
