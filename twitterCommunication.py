@@ -29,7 +29,7 @@ import sys #for command line options
 class twitterError(Exception):
 
     def __init__(self,Exception):
-        print "Twitter sent a message:",Exception.message[0]['message']
+        print "Twitter sent a message:",Exception.message
         sys.exit("Process terminating.")
         
         
@@ -38,69 +38,79 @@ class TwitterCommunication:
     def __init__(self,ck=None, cks=None, at=None, ats=None):
         self.api = twitter.Api(consumer_key=None,consumer_secret=None,
                           access_token_key=None, access_token_secret=None)
-        
-    def getTweet(self, username, tweetID):
+
+
+    def getTimeline(self, username):
         try:
             array = self.api.GetUserTimeline(username)
         except twitter.TwitterError as e:
             twitterError(e)
+        return array
+
+    def getTweet(self, username, tweetID):
+        array = self.getTimeline(username)
         return array[tweetID]
 
     def getTweetText(self, username, tweetID):
-        try:
-            array = self.api.GetUserTimeline(username)
-        except twitter.TwitterError as e:
-            twitterError(e)
-        return array[tweetID].text
+        return self.getTweet(username,tweetID).text
 
     def getTweetPlace(self, username, tweetID):
-        array = self.api.GetUserTimeline(username)
-        return array[tweetID].place
+        return self.getTweet(username,tweetID).place
 
-    def getTimeline(self, username):
-        array = self.api.GetUserTimeline(username)
-        return array
-
-    def getUser(self, username):
-        return self.api.GetUser(username)
 
     def getFollowers(self, username):
-        array = self.api.GetFriends(username)
+        try:
+            array = self.api.GetFriends(username)
+        except twitter.TwitterError as e:
+            twitterError(e)
         return array
     
     def getFollowersNames(self, username):
         names = []
-        array = self.api.GetFriends(username)
+        array = self.getFollowers(username)
         for k in array:
             names.append(k.screen_name)
         return names
 
+    def getUser(self, username):
+        return self.api.GetUser(username)
         
 def main():
-    connection = TwitterCommunication()
-    if sys.argv[1]=="help":
-        print "Commands:"
-        print "\"X follows\" to print out all the users X follows!"
-        print "\"newest X\" to print out the newest Tweet of X!"
-        print "\"where X\" to print out if X has a known location!"
-    if sys.argv[1]=="newest":
-        print connection.getTweetText(sys.argv[2], 0)
-    if sys.argv[1]=="where":
-        if (connection.getUser(sys.argv[2]).geo_enabled == True):
-            print "The user has enabled geotagging, printing locations:"
-            place=connection.getTweetPlace(sys.argv[2], 1)['name']
-            if place!=None:
-                print place
-            else:
-                print "Location not specified"
-        else:
-            print "GEO not enabled"
+    arg = [""]*4
     try:
-        if sys.argv[2]=="follows":
-            print connection.getFollowersNames(sys.argv[1])
+        arg[1] = sys.argv[1]
     except IndexError:
-        pass
+        arg[1] = "help"
+    try:
+        arg[2] = sys.argv[2]
+    except IndexError:
+        arguemnt[2] = ""
+    try:
+        arg[3] = sys.argv[3]
+    except IndexError:
+        arg[3] = ""
 
-        
+    connection = TwitterCommunication()
+    
+    if arg[1]=="help":
+        print "Commands:"
+        print "\"followers X\" to print out all the users X follows!"
+        print "\"newest X\" to print out the newest Tweet of X!"
+        print "\"where X Y\" to print out the location of the tweet Y from user X!"
+
+    if arg[1]=="newest":
+        print connection.getTweetText(arg[2], 0)
+
+    if arg[1]=="where":
+        print connection.getTweetPlace(arg[2], int(arg[3]))['country'],"(",
+        print connection.getTweetPlace(arg[2], int(arg[3]))['country_code'],"),",
+        print connection.getTweetPlace(arg[2], int(arg[3]))['place_type'],":",
+        print connection.getTweetPlace(arg[2], int(arg[3]))['name']
+
+    if arg[1]=="followers":
+            for k in connection.getFollowersNames(arg[2]):
+                print k,
+
+            
 if __name__ == "__main__":
     main()
