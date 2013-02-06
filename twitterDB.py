@@ -25,7 +25,7 @@ class unknownError():
     
     def __init__(self,Exception):
         print "Unexpected error:", Exception
-
+        sys.exit("Process terminating.")
 
 class TwitterDB:
 
@@ -33,55 +33,87 @@ class TwitterDB:
 
     def __init__(self,database):
         self.database=database
+        open(self.database,'ab').close()        
         
-    def addTweet(self,tweet):
-        db = open(database,'a')
-        pickle.dump(tweet,db)
+    def addTweet(self,newTweet):
+        tweets = self.getTweets()
+        for tweet in tweets:
+            if tweet.id==newTweet.id:
+                return False
+        db = open(self.database,'ab')
+        pickle.dump(newTweet,db)
         db.close()
-		
-    def getTweet(self,username):
-        db = open(database,'rb')
-        entry = []
-        while(1):
-            try:
-                entry = pickle.load(db)
-            except EOFError:
-                db.close()
-                return entry
-            except Exception:
-                unknownError(Exception)
-            if entry.user.name==username:
-                db.close()
-                return entry
-        
-    def getAllTweets(self,username):
-        db = open(database,'rb')
+        return True
+
+    def getTweets(self):
+        db = open(self.database,'rb')
         array = []
         while(1):
             try:
-                entry = pickle.load(db)
+                tweet = pickle.load(db)
             except EOFError:
                 db.close()
                 return array
-            except Exception:
-                unknownError(Exception)
-            if entry.user.name==username:
-                array+=entry
-
-	def getAllTweets(self):
-		db = open(database,'rb')
-		array = []
+            array.append(tweet)
+        return None
+		
+    def getTweet(self,username):
+        db = open(self.database,'rb')
+        entry = None
         while(1):
             try:
-                entry = pickle.load(db)
+                tweet = pickle.load(db)
+            except EOFError:
+                db.close()
+                return entry
+            if tweet.user.screen_name==username:
+                return tweet
+        return None
+
+    def getAllTweetsFromUser(self,username):
+        db = open(self.database,'rb')
+        array = []
+        while(1):
+            try:
+                tweet = pickle.load(db)
             except EOFError:
                 db.close()
                 return array
-            except Exception:
-                unknownError(Exception)
-            array+=entry
-        
+            if tweet.user.screen_name==username:
+                array.append(tweet)
+        return None
+
+def main():
+    arg = [""]*5
+    try:
+        arg[1] = sys.argv[1]
+    except IndexError:
+        arg[1] = "help"
+    try:
+        arg[2] = sys.argv[2]
+    except IndexError:
+        arguemnt[2] = ""
+    try:
+        arg[3] = sys.argv[3]
+    except IndexError:
+        arg[3] = ""
+    try:
+        arg[4] = sys.argv[4]
+    except IndexError:
+        arg[4] = ""
+
+	myDB = TwitterDB(arg[1])
+    
+    if arg[2]=="get":
+        if arg[3]=="all":
+            if arg[4]=="":
+                print myDB.getAllTweets()
+            else:
+                print myDB.getAllTweetsFromUser(arg[4])
+        else:
+            print myDB.getTweet(arg[2])
+    else:
+        print "file get \[all\] \[USER\] to print tweets"
         
 if __name__ == "__main__":
-	myDB = TwitterDB(sys.argv[1])
-    print myDB.getAllTweets()
+    main()

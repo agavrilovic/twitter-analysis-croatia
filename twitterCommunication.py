@@ -74,7 +74,8 @@ class TwitterCommunication:
 
     def getUser(self, username):
         return self.api.GetUser(username)
-        
+
+    
 def main():
     arg = [""]*4
     try:
@@ -91,26 +92,26 @@ def main():
         arg[3] = ""
 
     connection = TwitterCommunication()
+
+    if arg[1]=="newest":
+        print connection.getTweetText(arg[2], 0)
+
+    elif arg[1]=="where":
+        print connection.getTweetPlace(arg[2], int(arg[3]))['country'],"(",
+        print connection.getTweetPlace(arg[2], int(arg[3]))['country_code'],"),",
+        print connection.getTweetPlace(arg[2], int(arg[3]))['place_type'],":",
+        print connection.getTweetPlace(arg[2], int(arg[3]))['name']
     
-    if arg[1]=="help":
+    elif arg[1]=="followers":
+            for k in connection.getFollowersNames(arg[2]):
+                print k,
+    
+    else:
         print "Commands:"
         print "\"followers X\" to print out all the users X follows!"
         print "\"newest X\" to print out the newest Tweet of X!"
         print "\"where X Y\" to print out the location of the tweet Y from user X!"
 
-    if arg[1]=="newest":
-        print connection.getTweetText(arg[2], 0)
 
-    if arg[1]=="where":
-        print connection.getTweetPlace(arg[2], int(arg[3]))['country'],"(",
-        print connection.getTweetPlace(arg[2], int(arg[3]))['country_code'],"),",
-        print connection.getTweetPlace(arg[2], int(arg[3]))['place_type'],":",
-        print connection.getTweetPlace(arg[2], int(arg[3]))['name']
-
-    if arg[1]=="followers":
-            for k in connection.getFollowersNames(arg[2]):
-                print k,
-
-            
 if __name__ == "__main__":
     main()
