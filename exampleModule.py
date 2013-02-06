@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 
-""" A simple class that downloads and stores tweets from Croatia to a file
+""" A simple module that interacts with twitterCommunication and twitterDB
     Copyright (C) 2012./2013. Aleksandar Gavrilovic / FER
 
     This program is free software: you can redistribute it and/or modify
