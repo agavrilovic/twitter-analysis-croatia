@@ -25,9 +25,9 @@ import sys #for command line options
 
 def main():
     try:
-        file = sys.argv[1]
+        arg = sys.argv[1]
     except IndexError:
-        file = "twitterDB.txt"
+        file = "help"
     try:
         user = sys.argv[2]
     except IndexError:
@@ -40,8 +40,12 @@ def main():
     except IndexError:
         verbose = True
 
+    if file="help":
+        print "Use exampleModule like this: "
+        print "python exampleModule.py filename [user] [verbosity]"
+    
     myComm = twitterCommunication.TwitterCommunication()
-    myDB = twitterDB.TwitterDB(file)
+    myDB = twitterDB.TwitterDB(arg)
    
     tweets = myComm.getTimeline(user)
     k=0
