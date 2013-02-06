@@ -27,7 +27,7 @@ def main():
     try:
         arg = sys.argv[1]
     except IndexError:
-        file = "help"
+        arg = "help"
     try:
         user = sys.argv[2]
     except IndexError:
@@ -40,7 +40,7 @@ def main():
     except IndexError:
         verbose = True
 
-    if file=="help":
+    if arg=="help":
         print "Use exampleModule like this: "
         print "python exampleModule.py filename [user] [verbosity]"
     
