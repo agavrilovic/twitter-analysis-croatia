@@ -65,7 +65,6 @@ def main():
         print "Fetching all tweets from user",user,"in database",file
         print myDB.getAllTweetsFromUser(user)
         print "Fetching all tweets from database",file
-
     for tweet in myDB.getTweets():
         print tweet.text
 

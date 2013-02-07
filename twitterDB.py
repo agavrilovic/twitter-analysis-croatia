@@ -45,6 +45,16 @@ class TwitterDB:
         db.close()
         return True
 
+    def addUser(self,newUser):
+        users = self.getUsers()
+        for user in users:
+            if user.id==newUser.id:
+                return False
+        db = open(self.database,'ab')
+        pickle.dump(newUser,db)
+        db.close()
+        return True
+
     def getTweets(self):
         db = open(self.database,'rb')
         array = []
@@ -56,6 +66,9 @@ class TwitterDB:
                 return array
             array.append(tweet)
         return None
+
+    def getUsers(self):
+        return self.getTweets()
 		
     def getTweet(self,username):
         db = open(self.database,'rb')

@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 
-""" A simple class that downloads and stores tweets from Croatia to a file
+""" A class that downloads and stores a list of followers locations
     Copyright (C) 2012./2013. Aleksandar Gavrilovic / FER
 
     This program is free software: you can redistribute it and/or modify
@@ -22,11 +22,30 @@ import twitterCommunication
 import twitterDB
 import sys #for commandline arguments
 
-def getFollowersFromCroatia():
-    pass
+def whereData():
+    try:
+        arg = sys.argv[1]
+    except IndexError:
+        arg = ""
+    try:
+        file = sys.argv[2]
+    except IndexError:
+        file = "tweetsCroatia.txt"    
+    myComm = twitterCommunication.TwitterCommunication()
+    myDB = twitterDB.TwitterDB(file)
+    if arg != "":
+        followers = myComm.getUser(arg).followers_count
+        users = myComm.getFollowers(arg,followers)
+        for k in users:
+            myDB.addUser(k)
+    else if arg != "help":
+        for user in myDB.getUsers():
+            if user.location!=None:
+                print user.location.encode('utf-8', 'ignore')
+            else:
+                print "None"
+    else:
+        print "Use like this: python twitterCroatia.py [user] [file]"
 
-def getTweetsFromCroatia():
-    pass    
-    
 if __name__ == "__main__":
-    pass
+    whereData()

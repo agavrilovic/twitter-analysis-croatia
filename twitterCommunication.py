@@ -30,7 +30,7 @@ class twitterError(Exception):
 
     def __init__(self,Exception):
         print "Twitter sent a message:",Exception.message
-        sys.exit("Process terminating.")
+        #sys.exit("Process terminating.")
         
         
 class TwitterCommunication:    
@@ -41,6 +41,7 @@ class TwitterCommunication:
 
 
     def getTimeline(self, username):
+        array = []
         try:
             array = self.api.GetUserTimeline(username)
         except twitter.TwitterError as e:
@@ -49,25 +50,36 @@ class TwitterCommunication:
 
     def getTweet(self, username, tweetID):
         array = self.getTimeline(username)
-        return array[tweetID]
+        if array != []:
+            return array[tweetID]
+        else:
+            return []
+
 
     def getTweetText(self, username, tweetID):
-        return self.getTweet(username,tweetID).text
+        tweet = self.getTweet(username,tweetID)
+        if tweet != []:
+            return tweet.text
+        else:
+            return []
 
     def getTweetPlace(self, username, tweetID):
-        return self.getTweet(username,tweetID).place
+        tweet = self.getTweet(username,tweetID)
+        if tweet != []:
+            return tweet.place
+        else:
+            return []
 
-
-    def getFollowers(self, username):
+    def getFollowers(self, username,i):
         try:
-            array = self.api.GetFriends(username)
+            array = list(self.api.GetFriends(username,maxUsers=i))
         except twitter.TwitterError as e:
             twitterError(e)
         return array
     
-    def getFollowersNames(self, username):
+    def getFollowersNames(self, username,i):
         names = []
-        array = self.getFollowers(username)
+        array = self.getFollowers(username,i)
         for k in array:
             names.append(k.screen_name)
         return names
@@ -103,12 +115,12 @@ def main():
         print connection.getTweetPlace(arg[2], int(arg[3]))['name']
     
     elif arg[1]=="followers":
-            for k in connection.getFollowersNames(arg[2]):
+            for k in connection.getFollowersNames(arg[2],int(arg[3])):
                 print k,
     
     else:
         print "Commands:"
-        print "\"followers X\" to print out all the users X follows!"
+        print "\"followers X i\" to print out all the users X follows, page i!"
         print "\"newest X\" to print out the newest Tweet of X!"
         print "\"where X Y\" to print out the location of the tweet Y from user X!"
 
