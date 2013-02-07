@@ -40,34 +40,35 @@ def main():
     except IndexError:
         verbose = True
 
-    if arg=="help":
+    if arg == "help":
         print "Use exampleModule like this: "
         print "python exampleModule.py filename [user] [verbosity]"
     
-    myComm = twitterCommunication.TwitterCommunication()
-    myDB = twitterDB.TwitterDB(arg)
+    else:
+        myComm = twitterCommunication.TwitterCommunication()
+        myDB = twitterDB.TwitterDB(arg)
    
-    tweets = myComm.getTimeline(user)
-    k=0
-    for tweet in tweets: 
-        k+=1
-        if verbose:
-            if myDB.addTweet(tweet):
-                print "Tweet",k,"from user",user,"put in database",file
+        tweets = myComm.getTimeline(user)
+        k=0
+        for tweet in tweets: 
+            k+=1
+            if verbose:
+                if myDB.addTweet(tweet):
+                    print "Tweet",k,"from user",user,"put in database",file
+                else:
+                    print "Tweet",k,"from user",user,"already in database",file
             else:
-                print "Tweet",k,"from user",user,"already in database",file
-        else:
-            myDB.addTweet(tweet)
+                myDB.addTweet(tweet)
 
-    if verbose:
-        print "Fetching 1 tweet from user",user,"in database",file
-        print myDB.getTweet(user)
-        print "Fetching all tweets from user",user,"in database",file
-        print myDB.getAllTweetsFromUser(user)
-        print "Fetching all tweets from database",file
-    for tweet in myDB.getTweets():
-        print tweet.text
-
+        if verbose:
+            print "Fetching 1 tweet from user",user,"in database",file
+            print myDB.getTweet(user)
+            print "Fetching all tweets from user",user,"in database",file
+            print myDB.getAllTweetsFromUser(user)
+            print "Fetching all tweets from database",file
+        
+        for tweet in myDB.getTweets():
+            print tweet.text        
 
 if __name__ == "__main__":
     main()

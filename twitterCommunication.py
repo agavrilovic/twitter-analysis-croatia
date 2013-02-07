@@ -22,9 +22,8 @@ import twitter
 import sys #for command line options
 
 #Changes made to python-twitter library (v.0.9) to enable pagination:
-#line:2666  def GetFollowers(self, page=None, cursor=-1): #added param cursor
-#line 2685     parameters['cursor'] = cursor
-#line 2690:     return data #removed creation of a list of User, just jsonclass TwitterDB:
+#entire def GetFollowers(self, page=None, cursor=-1)
+
 
 class twitterError(Exception):
 
