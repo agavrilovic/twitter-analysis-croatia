@@ -46,6 +46,12 @@ def getAllFollowers():
         else:
             print "Using ID lookup"
             users = myComm.getFollowersIDs(arg)
+            
+            temp = open('temp','w')
+            for u in users:
+                f.write(u,+"\n")
+            temp.close()
+            
             n = 0
             for u in users:
                 n+=1
