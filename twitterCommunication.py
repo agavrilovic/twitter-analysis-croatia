@@ -50,24 +50,29 @@ class TwitterCommunication:
     def getTweet(self, username, tweetID):
         array = self.getTimeline(username)
         if array != []:
-            return array[tweetID]
+            try:
+                return array[tweetID]
+            except IndexError:
+                print "Timeline exceeded"
+                return None
         else:
-            return []
+            return None
 
 
     def getTweetText(self, username, tweetID):
         tweet = self.getTweet(username,tweetID)
-        if tweet != []:
+        if tweet != None:
             return tweet.text
         else:
-            return []
+            return None
 
     def getTweetPlace(self, username, tweetID):
         tweet = self.getTweet(username,tweetID)
-        if tweet != []:
-            return tweet.place
-        else:
-            return []
+        if tweet != None:
+            if tweet.place != None:
+                return tweet.place
+            print "No location given"
+        return None
 
     def getFollowers(self, username,i):
         try:
@@ -105,17 +110,30 @@ def main():
     connection = TwitterCommunication()
 
     if arg[1]=="newest":
-        print connection.getTweetText(arg[2], 0)
-
+        try:
+            print connection.getTweetText(arg[2], 0)
+        except UnicodeEncodeError:
+            print connection.getTweetText(arg[2], 0).encode('utf-8', 'ignore')
     elif arg[1]=="where":
-        print connection.getTweetPlace(arg[2], int(arg[3]))['country'],"(",
-        print connection.getTweetPlace(arg[2], int(arg[3]))['country_code'],"),",
-        print connection.getTweetPlace(arg[2], int(arg[3]))['place_type'],":",
-        print connection.getTweetPlace(arg[2], int(arg[3]))['name']
+        place = connection.getTweetPlace(arg[2], int(arg[3]))
+        if place != None:
+            try:
+                print place['country'],"(",
+            except UnicodeEncodeError:
+                print place['country'].encode('utf-8', 'ignore'),"(",
+            print place['country_code'],"),",
+            print place['place_type'],":",
+            try:
+                print place['name']
+            except UnicodeEncodeError:
+                print place['name'].encode('utf-8', 'ignore')
     
     elif arg[1]=="followers":
             for k in connection.getFollowersNames(arg[2],int(arg[3])):
-                print k,
+                try:
+                    print k
+                except UnicodeEncodeError:
+                    print k.encode('utf-8', 'ignore'),
     
     else:
         print "Commands:"

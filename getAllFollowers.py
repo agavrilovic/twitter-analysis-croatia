@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 
-""" A class that downloads and stores a list of followers locations
+""" A class that downloads and stores a list of followers in a text file
     Copyright (C) 2012./2013. Aleksandar Gavrilovic / FER
 
     This program is free software: you can redistribute it and/or modify
