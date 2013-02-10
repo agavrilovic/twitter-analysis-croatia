@@ -21,24 +21,42 @@
 import twitterCommunication
 import twitterDB
 import sys #for commandline arguments
+import time
 
 def getAllFollowers():
+    MAX = 1000 #arbitrary
     try:
         arg = sys.argv[1]
     except IndexError:
-        arg = "VladaRH"
+        arg = "VladaRH" #defaults to this account
     try:
         file = sys.argv[2]
     except IndexError:
-        file = "followersVladaRH.txt"    
+        file = "followersVladaRH.txt" #defaults to this file
 
     myComm = twitterCommunication.TwitterCommunication()
     myDB = twitterDB.TwitterDB(file)
     if arg != "help":
         followers = myComm.getUser(arg).followers_count
-        users = myComm.getFollowers(arg,followers)
-        for k in users:
-            myDB.addUser(k)
+        if followers<MAX: #users with little or no followers -> directly
+            print "Using GetFollowers"
+            users = myComm.getFollowers(arg,followers)
+            for k in users:
+                myDB.addUser(k)
+        else:
+            print "Using ID lookup"
+            users = myComm.getFollowersIDs(arg)
+            n = 0
+            for u in users:
+                n+=1
+                id = list()
+                id.append(u)
+                user = myComm.getUserByID(id)
+                del id[:]
+                for k in user:
+                    myDB.addUser(k)
+                    print n,"Added user ID",u,"with name",k.screen_name
+                time.sleep(25)
     else:
         print "Use like this: python getAllFollowers.py [user] [file]"
 

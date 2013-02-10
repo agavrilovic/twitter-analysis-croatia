@@ -34,10 +34,22 @@ class twitterError(Exception):
         
 class TwitterCommunication:    
     
-    def __init__(self,ck=None, cks=None, at=None, ats=None):
-        self.api = twitter.Api(consumer_key=None,consumer_secret=None,
-                          access_token_key=None, access_token_secret=None)
-
+    def __init__(self):
+        
+        try:
+            authFile = open("authorisation.txt",'r')
+            auth_ck = authFile.readline().rstrip()
+            auth_cs = authFile.readline().rstrip()
+            auth_atk = authFile.readline().rstrip()
+            auth_ats = authFile.readline().rstrip()
+            authFile.close()
+            self.api = twitter.Api(
+                consumer_key=auth_ck, 
+                consumer_secret=auth_cs,
+                access_token_key=auth_atk, 
+                access_token_secret=auth_ats)
+        except IOError:
+            self.api = twitter.Api()
 
     def getTimeline(self, username):
         array = []
@@ -81,6 +93,22 @@ class TwitterCommunication:
             twitterError(e)
         return array
     
+    def getFollowersIDs(self, username):
+        bigData = []
+        try:
+            data = self.api.GetFriendIDs(user=username,cursor=-1)
+        except twitter.TwitterError as e:
+            twitterError(e)
+            return []
+        bigData.extend(data['ids'])
+        while(data['next_cursor']!=0):
+            try:
+                data = self.api.GetFriendIDs(user=username,cursor=data['next_cursor'])
+            except twitter.TwitterError as e:
+                twitterError(e)
+            bigData.extend(data['ids'])
+        return bigData
+
     def getFollowersNames(self, username,i):
         names = []
         array = self.getFollowers(username,i)
@@ -90,6 +118,9 @@ class TwitterCommunication:
 
     def getUser(self, username):
         return self.api.GetUser(username)
+        
+    def getUserByID(self, id):
+        return self.api.UsersLookup(user_id=id)
 
     
 def main():
@@ -129,7 +160,17 @@ def main():
                 print place['name'].encode('utf-8', 'ignore')
     
     elif arg[1]=="followers":
-            for k in connection.getFollowersNames(arg[2],int(arg[3])):
+        if arg[2]=="ids":
+            array = connection.getFollowersIDs(arg[3])
+            for k in array:
+                print k
+        else:
+            try:
+                array =  connection.getFollowersNames(arg[2],int(arg[3]))
+            except ValueError:
+                array = []
+                print "Third argument value must be integer."
+            for k in array:
                 try:
                     print k
                 except UnicodeEncodeError:
@@ -137,9 +178,10 @@ def main():
     
     else:
         print "Commands:"
-        print "\"followers X i\" to print out all the users X follows, page i!"
-        print "\"newest X\" to print out the newest Tweet of X!"
-        print "\"where X Y\" to print out the location of the tweet Y from user X!"
+        print "\"followers X [Y|-1]\" to print first Y users X follows"
+        print "\"followers ids X\" to print all IDs of Xs followers" 
+        print "\"newest X\" to print the newest tweet of X"
+        print "\"where X Y\" to print the location of the user Xs tweet Y"
 
 
 if __name__ == "__main__":
