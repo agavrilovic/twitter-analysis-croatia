@@ -49,7 +49,8 @@ def getAllFollowers():
             
             temp = open('temp','w')
             for u in users:
-                f.write(u,+"\n")
+                temp.write(u)
+                temp.write("\n")
             temp.close()
             
             n = 0
