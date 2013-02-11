@@ -22,7 +22,7 @@ import twitter
 import sys #for command line options
 
 #Changes made to python-twitter library (v.0.9) to enable pagination:
-#entire def GetFollowers(self, page=None, cursor=-1)
+#def GetFriends(self, user=None, userid=None, cursor=-1, maxUsers=100):
 
 
 class twitterError(Exception):
@@ -32,10 +32,9 @@ class twitterError(Exception):
         #sys.exit("Process terminating.")
         
         
-class TwitterCommunication:    
+class TwitterCommunication:
     
-    def __init__(self):
-        
+    def __init__(self):        
         try:
             authFile = open("authorisation.txt",'r')
             auth_ck = authFile.readline().rstrip()
@@ -70,7 +69,6 @@ class TwitterCommunication:
         else:
             return None
 
-
     def getTweetText(self, username, tweetID):
         tweet = self.getTweet(username,tweetID)
         if tweet != None:
@@ -86,14 +84,31 @@ class TwitterCommunication:
             print "No location given"
         return None
 
-    def getFollowers(self, username,i):
+    def getIDsOfUsersFollowers(self, id): #does not work suddenly
+        bigData = []
         try:
-            array = list(self.api.GetFriends(username,maxUsers=i))
+            data = self.api.GetFollowerIDs(userid=id,cursor=-1)
         except twitter.TwitterError as e:
             twitterError(e)
-        return array
-    
-    def getFollowersIDs(self, username):
+            return bigData
+        try:
+            bigData.extend(data['ids'])
+        except KeyError:
+            print "There was an error fetching the data:",data
+            return bigData
+        while(data['next_cursor']!=0):
+            try:
+                data = self.api.GetFollowerIDs(user=username,cursor=data['next_cursor'])
+            except twitter.TwitterError as e:
+                twitterError(e)
+            try:
+                bigData.extend(data['ids'])
+            except KeyError:
+                print "There was an error fetching the data:",data
+                return bigData            
+        return bigData
+        
+    def getIDsOfUsersFollowedByUser(self, username):
         bigData = []
         try:
             data = self.api.GetFriendIDs(user=username,cursor=-1)
@@ -109,14 +124,14 @@ class TwitterCommunication:
             bigData.extend(data['ids'])
         return bigData
 
-    def getFollowersNames(self, username,i):
-        names = []
-        array = self.getFollowers(username,i)
-        for k in array:
-            names.append(k.screen_name)
-        return names
+    def getUsersFollowedByUser(self, username,i=-1):
+        try:
+            array = list(self.api.GetFriends(username,maxUsers=i))
+        except twitter.TwitterError as e:
+            twitterError(e)
+        return array
 
-    def getUser(self, username):
+    def getUserByName(self, username):
         return self.api.GetUser(username)
         
     def getUserByID(self, id):
@@ -161,25 +176,27 @@ def main():
     
     elif arg[1]=="followers":
         if arg[2]=="ids":
-            array = connection.getFollowersIDs(arg[3])
+            array = connection.getIDsOfUsersFollowedByUser(arg[3])
             for k in array:
                 print k
         else:
+            names = []
             try:
-                array =  connection.getFollowersNames(arg[2],int(arg[3]))
+                array = connection.getUsersFollowedByUser(arg[2],int(arg[3]))
             except ValueError:
                 array = []
                 print "Third argument value must be integer."
             for k in array:
+                names.append(k.screen_name)
+            for k in names:
                 try:
                     print k
                 except UnicodeEncodeError:
                     print k.encode('utf-8', 'ignore'),
-    
     else:
         print "Commands:"
-        print "\"followers X [Y|-1]\" to print first Y users X follows"
-        print "\"followers ids X\" to print all IDs of Xs followers" 
+        print "\"followers X [Y|-1]\" to print page Y of Xs followers"
+        print "\"followers ids X\" to print all IDs X follows" 
         print "\"newest X\" to print the newest tweet of X"
         print "\"where X Y\" to print the location of the user Xs tweet Y"
 

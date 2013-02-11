@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 
-""" A simple module that interacts with twitterCommunication and twitterDB
+""" A simple module that takes a users tweets and prints out their texts
     Copyright (C) 2012./2013. Aleksandar Gavrilovic / FER
 
     This program is free software: you can redistribute it and/or modify
@@ -27,11 +27,11 @@ def main():
     try:
         arg = sys.argv[1]
     except IndexError:
-        arg = "help"
+        arg = "help" #defaults to this command
     try:
         user = sys.argv[2]
     except IndexError:
-        user = "VladaRH"
+        user = "VladaRH" #defaults to this user
     try:
         if sys.argv[3]=="False":
             verbose=False
@@ -50,9 +50,9 @@ def main():
    
         tweets = myComm.getTimeline(user)
         k=0
-        for tweet in tweets: 
-            k+=1
+        for tweet in tweets:
             if verbose:
+                k+=1
                 if myDB.addTweet(tweet):
                     print "Tweet",k,"from user",user,"put in database",file
                 else:

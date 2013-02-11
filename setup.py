@@ -25,7 +25,12 @@ __version__ = '0.1dev'
 METADATA = dict(
   name = "twitter-analysis-croatia",
   version = __version__,
-  py_modules = ['twitterCommunication','twitterDB','twitterCroatia'],
+  py_modules = ['twitterCommunication',
+                'twitterDB',
+                'twitterCroatia',
+                'printUsersTimeline',
+                'whereData',
+                'getAllUsersFollowedByUser'],
   author='Aleksandar Gavrilovic',
   author_email='aleksandar.gavrilovic@fer.hr',
   description='College project for analysing data from Twitter',

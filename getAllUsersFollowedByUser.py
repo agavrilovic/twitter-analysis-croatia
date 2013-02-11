@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 
-""" A class that downloads and stores a list of followers locations
+""" A class that downloads and stores a list of followers in a text file
     Copyright (C) 2012./2013. Aleksandar Gavrilovic / FER
 
     This program is free software: you can redistribute it and/or modify
@@ -21,31 +21,36 @@
 import twitterCommunication
 import twitterDB
 import sys #for commandline arguments
+import time
 
-def whereData():
+def getAllUsersFollowedByUser():
     try:
-        arg = sys.argv[1]
+        arg = int(sys.argv[1])
     except IndexError:
-        arg = ""
+        arg = "VladaRH" #defaults to this account
     try:
         file = sys.argv[2]
     except IndexError:
-        file = "tweetsCroatia.txt"    
+        file = "FriendsOfVladaRH.txt" #defaults to this file
+
     myComm = twitterCommunication.TwitterCommunication()
     myDB = twitterDB.TwitterDB(file)
-    if arg != "":
-        followers = myComm.getUser(arg).followers_count
-        users = myComm.getFollowers(arg,followers)
-        for k in users:
-            myDB.addUser(k)
-    else if arg != "help":
-        for user in myDB.getUsers():
-            if user.location!=None:
-                print user.location.encode('utf-8', 'ignore')
-            else:
-                print "None"
+    if arg != "help":
+        user = myComm.getUserByName(arg)
+        friendIDs = myComm.getIDsOfUsersFollowedByUser(arg)
+        n = 0
+        idList = list() #API demands a list
+        for friendID in friendIDs:
+            idList.append(friendID)
+            friendArray = myComm.getUserByID(idList)
+            for friend in friendArray:
+                myDB.addUser(friend)
+                n+=1
+                print n,"Added user ID",friendID,"with name",friend.screen_name.encode('utf-8', 'ignore')
+            time.sleep(20) #API has request time limits
+            del idList[:]
     else:
-        print "Use like this: python twitterCroatia.py [user] [file]"
+        print "Use like this: python getAllFollowers.py [userID] [file]"
 
 if __name__ == "__main__":
-    whereData()
+    getAllUsersFollowedByUser()
