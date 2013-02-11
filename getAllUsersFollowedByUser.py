@@ -42,15 +42,23 @@ def getAllUsersFollowedByUser():
         idList = list() #API demands a list
         for friendID in friendIDs:
             idList.append(friendID)
+            rateLimit = myComm.getRateLimitStatus()
+            print "Requests:",rateLimit['remaining_hits']
+            while rateLimit['remaining_hits'] == 0:
+                wait = rateLimit['reset_time_in_seconds']-time.time()
+                print "Waiting for Twitter to grant requests:",wait,"s"
+                time.sleep(5)
             friendArray = myComm.getUserByID(idList)
             for friend in friendArray:
                 myDB.addUser(friend)
                 n+=1
-                print n,"Added user ID",friendID,"with name",friend.screen_name.encode('utf-8', 'ignore')
-            time.sleep(20) #API has request time limits
+                print n,"Added user ID",friendID,"with name",
+                print friend.screen_name.encode('utf-8', 'ignore')
+            
             del idList[:]
     else:
         print "Use like this: python getAllFollowers.py [userID] [file]"
 
 if __name__ == "__main__":
     getAllUsersFollowedByUser()
+    

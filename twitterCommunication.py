@@ -23,7 +23,7 @@ import sys #for command line options
 
 #Changes made to python-twitter library (v.0.9) to enable pagination:
 #def GetFriends(self, user=None, userid=None, cursor=-1, maxUsers=100):
-
+#def GetFollowers(self, user=None, page=None):
 
 class twitterError(Exception):
 
@@ -135,8 +135,15 @@ class TwitterCommunication:
         return self.api.GetUser(username)
         
     def getUserByID(self, id):
-        return self.api.UsersLookup(user_id=id)
+        try:
+            user = self.api.UsersLookup(user_id=id)
+        except AttributeError as e:
+            print e
+            return []
+        return user
 
+    def getRateLimitStatus(self):
+        return self.api.GetRateLimitStatus()
     
 def main():
     arg = [""]*4
