@@ -20,6 +20,7 @@
 
 import twitter
 import sys #for command line options
+import urllib2 #for URLError
 
 #Changes made to python-twitter library (v.0.9) to enable pagination:
 #def GetFriends(self, user=None, userid=None, cursor=-1, maxUsers=100):
@@ -115,12 +116,17 @@ class TwitterCommunication:
         except twitter.TwitterError as e:
             twitterError(e)
             return []
+        except urllib2.URLError as e:
+            print e
+            return []
         bigData.extend(data['ids'])
         while(data['next_cursor']!=0):
             try:
                 data = self.api.GetFriendIDs(user=username,cursor=data['next_cursor'])
             except twitter.TwitterError as e:
                 twitterError(e)
+            except urllib2.URLError as e:
+                print e
             bigData.extend(data['ids'])
         return bigData
 
@@ -132,7 +138,11 @@ class TwitterCommunication:
         return array
 
     def getUserByName(self, username):
-        return self.api.GetUser(username)
+        try:
+            return self.api.GetUser(username)
+        except urllib2.URLError as e:
+            print e
+            return []
         
     def getUserByID(self, id):
         try:
@@ -140,10 +150,17 @@ class TwitterCommunication:
         except AttributeError as e:
             print e
             return []
+        except urllib2.URLError as e:
+            print e
+            return []
         return user
 
     def getRateLimitStatus(self):
-        return self.api.GetRateLimitStatus()
+        try:
+            return self.api.GetRateLimitStatus()
+        except urllib2.URLError as e:
+            print e
+            return []
     
 def main():
     arg = [""]*4

@@ -36,19 +36,36 @@ def getAllUsersFollowedByUser():
     myComm = twitterCommunication.TwitterCommunication()
     myDB = twitterDB.TwitterDB(file)
     if arg != "help":
-        user = myComm.getUserByName(arg)
-        friendIDs = myComm.getIDsOfUsersFollowedByUser(arg)
+        user = []
+        while user == []:
+            user = myComm.getUserByName(arg)
+        friendIDs = []
+        while friendIDs == []:
+            friendIDs = myComm.getIDsOfUsersFollowedByUser(arg)
+        n = 0
+        for i in friendIDs:
+            n+=1
+        print "Total users to request:",n
         n = 0
         idList = list() #API demands a list
         for friendID in friendIDs:
             idList.append(friendID)
-            rateLimit = myComm.getRateLimitStatus()
-            print "Requests:",rateLimit['remaining_hits']
+            rateLimit = []
+            while rateLimit == []:
+                rateLimit = myComm.getRateLimitStatus()
+            print "Requests this hour:",rateLimit['remaining_hits']
             while rateLimit['remaining_hits'] == 0:
                 wait = rateLimit['reset_time_in_seconds']-time.time()
                 print "Waiting for Twitter to grant requests:",wait,"s"
-                time.sleep(5)
-            friendArray = myComm.getUserByID(idList)
+                if wait >= 180:
+                    time.sleep(180)
+                elif wait > 0:
+                    time.sleep(wait)
+                else:
+                    break
+            friendArray = []
+            while friendArray == []:
+                friendArray = myComm.getUserByID(idList)
             for friend in friendArray:
                 myDB.addUser(friend)
                 n+=1
