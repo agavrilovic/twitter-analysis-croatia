@@ -25,12 +25,10 @@ __version__ = '0.1dev'
 METADATA = dict(
   name = "twitter-analysis-croatia",
   version = __version__,
-  py_modules = ['twitterCommunication',
-                'twitterDB',
-                'twitterCroatia',
-                'printUsersTimeline',
-                'whereData',
-                'getAllUsersFollowedByUser'],
+  py_modules = ['src/twitterCommunication',
+                'src/twitterDB',
+                'src/twitterCroatia',
+                'src/getAllUsersFollowedByUser'],
   author='Aleksandar Gavrilovic',
   author_email='aleksandar.gavrilovic@fer.hr',
   description='College project for analysing data from Twitter',
@@ -41,7 +39,7 @@ METADATA = dict(
 
 # Extra package metadata to be used only if setuptools is installed
 SETUPTOOLS_METADATA = dict(
-  install_requires = ['setuptools', 'simplejson', 'oauth2', 'python-twitter'>=0.8, 'httplib2'],
+  install_requires = ['setuptools', 'simplejson', 'oauth2', 'twitter>=0.8.5', 'httplib2'],
   include_package_data = True,
   classifiers = [
     'Development Status :: 4 - Beta',

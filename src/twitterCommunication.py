@@ -19,8 +19,8 @@
 """
 
 import twitter
-import sys #for command line options
-import urllib2 #for URLError
+import sys
+import urllib2
 
 #Changes made to python-twitter library (v.0.9) to enable pagination:
 #def GetFriends(self, user=None, userid=None, cursor=-1, maxUsers=100):
@@ -29,15 +29,16 @@ import urllib2 #for URLError
 class twitterError(Exception):
 
     def __init__(self,Exception):
-        print "Twitter sent a message:",Exception.message
-        #sys.exit("Process terminating.")
+        print "Twitter sent a message:",Exception.message[0]['message'], "; Code:",Exception.message[0]['code']
+        if Exception.message[0]['code']==34:
+            sys.exit("Unknown user, process terminating.")
         
         
 class TwitterCommunication:
     
     def __init__(self):        
         try:
-            authFile = open("authorisation.txt",'r')
+            authFile = open("authorisation",'r')
             auth_ck = authFile.readline().rstrip()
             auth_cs = authFile.readline().rstrip()
             auth_atk = authFile.readline().rstrip()
@@ -51,66 +52,76 @@ class TwitterCommunication:
         except IOError:
             self.api = twitter.Api()
 
-    def getTimeline(self, username):
+    def getTimeline(self, username=None):
         array = []
+        if username == None:
+            print "Argument needed: username"
+            return array
         try:
             array = self.api.GetUserTimeline(username)
         except twitter.TwitterError as e:
             twitterError(e)
         return array
 
-    def getTweet(self, username, tweetID):
+    def getTweet(self, username=None, tweetID=0):
+        if username == None:
+            print "Argument needed: username"
+            return None
         array = self.getTimeline(username)
         if array != []:
-            try:
-                return array[tweetID]
-            except IndexError:
-                print "Timeline exceeded"
-                return None
+            return array[tweetID]
         else:
             return None
 
-    def getTweetText(self, username, tweetID):
+    def getTweetText(self, username=None, tweetID=0):
+        if username == None:
+            print "Argument needed: username"
+            return None
         tweet = self.getTweet(username,tweetID)
         if tweet != None:
             return tweet.text
         else:
             return None
 
-    def getTweetPlace(self, username, tweetID):
+    def getTweetPlace(self, username=None, tweetID=0):
+        if username == None:
+            print "Argument needed: username"
+            return None
         tweet = self.getTweet(username,tweetID)
         if tweet != None:
             if tweet.place != None:
                 return tweet.place
-            print "No location given"
         return None
 
-    def getIDsOfUsersFollowers(self, id): #does not work suddenly
+    def getIDsOfUsersFollowers(self, username):
         bigData = []
+        if username == None:
+            print "Argument needed: username"
+            return bigData        
         try:
-            data = self.api.GetFollowerIDs(userid=id,cursor=-1)
+            data = self.api.GetFollowerIDs(user=username,cursor=-1)
         except twitter.TwitterError as e:
             twitterError(e)
-            return bigData
-        try:
-            bigData.extend(data['ids'])
-        except KeyError:
-            print "There was an error fetching the data:",data
-            return bigData
+            return []
+        except urllib2.URLError as e:
+            print e
+            return []
+        bigData.extend(data['ids'])
         while(data['next_cursor']!=0):
             try:
                 data = self.api.GetFollowerIDs(user=username,cursor=data['next_cursor'])
             except twitter.TwitterError as e:
                 twitterError(e)
-            try:
-                bigData.extend(data['ids'])
-            except KeyError:
-                print "There was an error fetching the data:",data
-                return bigData            
+            except urllib2.URLError as e:
+                print e
+            bigData.extend(data['ids'])
         return bigData
         
-    def getIDsOfUsersFollowedByUser(self, username):
+    def getIDsOfUsersFollowedByUser(self, username=None):
         bigData = []
+        if username == None:
+            print "Argument needed: username"
+            return bigData        
         try:
             data = self.api.GetFriendIDs(user=username,cursor=-1)
         except twitter.TwitterError as e:
@@ -129,13 +140,6 @@ class TwitterCommunication:
                 print e
             bigData.extend(data['ids'])
         return bigData
-
-    def getUsersFollowedByUser(self, username,i=-1):
-        try:
-            array = list(self.api.GetFriends(username,maxUsers=i))
-        except twitter.TwitterError as e:
-            twitterError(e)
-        return array
 
     def getUserByName(self, username):
         try:
@@ -171,58 +175,58 @@ def main():
     try:
         arg[2] = sys.argv[2]
     except IndexError:
-        arguemnt[2] = ""
-    try:
-        arg[3] = sys.argv[3]
-    except IndexError:
-        arg[3] = ""
+        arg[2] = ""
 
     connection = TwitterCommunication()
 
-    if arg[1]=="newest":
+    if arg[1] == "newest":
         try:
             print connection.getTweetText(arg[2], 0)
         except UnicodeEncodeError:
             print connection.getTweetText(arg[2], 0).encode('utf-8', 'ignore')
-    elif arg[1]=="where":
-        place = connection.getTweetPlace(arg[2], int(arg[3]))
-        if place != None:
+    elif arg[1] == "where" and arg[2] != "":
+        noneFound = True
+        i=0
+        while 1:
+            i+=1
             try:
-                print place['country'],"(",
-            except UnicodeEncodeError:
-                print place['country'].encode('utf-8', 'ignore'),"(",
-            print place['country_code'],"),",
-            print place['place_type'],":",
-            try:
-                print place['name']
-            except UnicodeEncodeError:
-                print place['name'].encode('utf-8', 'ignore')
-    
-    elif arg[1]=="followers":
-        if arg[2]=="ids":
-            array = connection.getIDsOfUsersFollowedByUser(arg[3])
-            for k in array:
-                print k
-        else:
-            names = []
-            try:
-                array = connection.getUsersFollowedByUser(arg[2],int(arg[3]))
-            except ValueError:
-                array = []
-                print "Third argument value must be integer."
-            for k in array:
-                names.append(k.screen_name)
-            for k in names:
+                place = connection.getTweetPlace(arg[2], i)
+            except urllib2.URLError as e:
+                print e
+                break
+            except IndexError as e:
+                print "Browsed through entire timeline."
+                break
+            if place != None:
+                noneFound = False
+                print "Tweet #",i,":",
                 try:
-                    print k
+                    print place['country'],"(",
                 except UnicodeEncodeError:
-                    print k.encode('utf-8', 'ignore'),
+                    print place['country'].encode('utf-8', 'ignore'),"(",
+                print place['country_code'],"),",
+                print place['place_type'],":",
+                try:
+                    print place['name']
+                except UnicodeEncodeError:
+                    print place['name'].encode('utf-8', 'ignore')
+        if noneFound:
+            print "No locations available for this account."
+    
+    elif arg[1] == "friends" and arg[2] != "":
+        array = connection.getIDsOfUsersFollowedByUser(arg[2])
+        for k in array:
+            print k
+    elif arg[1] == "followers" and arg[2] != "":
+        array = connection.getIDsOfUsersFollowers(arg[2])
+        for k in array:
+            print k
     else:
         print "Commands:"
-        print "\"followers X [Y|-1]\" to print page Y of Xs followers"
-        print "\"followers ids X\" to print all IDs X follows" 
+        print "\"friends X\" to print all IDs X follows" 
+        print "\"followers X\" to print all IDs that follow X"         
         print "\"newest X\" to print the newest tweet of X"
-        print "\"where X Y\" to print the location of the user Xs tweet Y"
+        print "\"where X\" to print the locations of the user Xs last tweets"
 
 
 if __name__ == "__main__":
