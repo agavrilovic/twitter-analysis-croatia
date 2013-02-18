@@ -49,6 +49,9 @@ def getAllUsersFollowedByUser():
         n = 0
         idList = list() #API demands a list
         for friendID in friendIDs:
+            if myDB.containsUserID(friendID):
+                print "Database already contains",friendID
+                continue
             idList.append(friendID)
             rateLimit = []
             while rateLimit == []:

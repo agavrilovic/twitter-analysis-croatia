@@ -38,7 +38,7 @@ class TwitterDB:
     def addTweet(self,newTweet):
         tweets = self.getTweets()
         for tweet in tweets:
-            if tweet.id==newTweet.id:
+            if tweet.id == newTweet.id:
                 return False
         db = open(self.database,'ab')
         pickle.dump(newTweet,db)
@@ -48,13 +48,20 @@ class TwitterDB:
     def addUser(self,newUser):
         users = self.getUsers()
         for user in users:
-            if user.id==newUser.id:
+            if user.id == newUser.id:
                 return False
         db = open(self.database,'ab')
         pickle.dump(newUser,db)
         db.close()
         return True
 
+    def containsUserID(self,query):
+        users = self.getUsers()
+        for user in users:
+            if user.id == query:
+                return True
+        return False
+        
     def getTweets(self):
         db = open(self.database,'rb')
         array = []
