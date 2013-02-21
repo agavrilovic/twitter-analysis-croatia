@@ -55,7 +55,7 @@ class TwitterCommunication:
     def getTimeline(self, username=None):
         array = []
         if username == None:
-            print "Argument needed: username"
+            print "getTimeline: Argument needed: username"
             return array
         try:
             array = self.api.GetUserTimeline(username)
@@ -65,7 +65,7 @@ class TwitterCommunication:
 
     def getTweet(self, username=None, tweetID=0):
         if username == None:
-            print "Argument needed: username"
+            print "getTweet: Argument needed: username"
             return None
         array = self.getTimeline(username)
         if array != []:
@@ -75,7 +75,7 @@ class TwitterCommunication:
 
     def getTweetText(self, username=None, tweetID=0):
         if username == None:
-            print "Argument needed: username"
+            print "getTweetText: Argument needed: username"
             return None
         tweet = self.getTweet(username,tweetID)
         if tweet != None:
@@ -85,7 +85,7 @@ class TwitterCommunication:
 
     def getTweetPlace(self, username=None, tweetID=0):
         if username == None:
-            print "Argument needed: username"
+            print "getTweetPlace: Argument needed: username"
             return None
         tweet = self.getTweet(username,tweetID)
         if tweet != None:
@@ -96,7 +96,7 @@ class TwitterCommunication:
     def getIDsOfUsersFollowers(self, username):
         bigData = []
         if username == None:
-            print "Argument needed: username"
+            print "getIDsOfUsersFollowers: Argument needed: username"
             return bigData        
         try:
             data = self.api.GetFollowerIDs(user=username,cursor=-1)
@@ -120,7 +120,7 @@ class TwitterCommunication:
     def getIDsOfUsersFollowedByUser(self, username=None):
         bigData = []
         if username == None:
-            print "Argument needed: username"
+            print "getIDsOfUsersFollowedByUser: Argument needed: username"
             return bigData        
         try:
             data = self.api.GetFriendIDs(user=username,cursor=-1)

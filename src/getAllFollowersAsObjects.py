@@ -23,67 +23,70 @@ import twitterDB
 import sys
 import time
 
-def getAllFollowersAsObjects():
-    try:
-        file = sys.argv[1]
-    except IndexError:
-        file = "listOfObjectsOfFollowersOfVladaRH.txt" #defaults to this output file
-    try:
-        arg = sys.argv[2]
-    except IndexError:
-        arg = None #defaults to fetching from a file called "temp.txt" (see below)
-        
 
-    myComm = twitterCommunication.TwitterCommunication()
-    myDB = twitterDB.TwitterDB(file)
+class GetAllFollowersAsObjects:
 
-    if arg == "help":
-        sys.exit("Use like this: python getAllFollowers.py [file] [userID]")
+    def __init__(self, file, arg=None):        
+        myComm = twitterCommunication.TwitterCommunication()
+        myDB = twitterDB.TwitterDB(file)
 
-    followerIDs = []    
-    if arg == None:
-        fileWithIDs = open("temp.txt","r")
-        followerIDs = fileWithIDs.readlines()
-        fileWithIDs.close()
-    else:
-        while followerIDs == []:
-            followerIDs = myComm.getIDsOfUsersFollowers(arg)
-    n = 0
-    for i in followerIDs:
-        followerIDs[n] = int(followerIDs[n].rstrip())
-        n+=1
-    print "Total users to request:",n
-    n = 0
-    idList = list() #API demands a list
-    for followerID in followerIDs:
-        if myDB.containsUserID(followerID):
-            print "Database already contains",followerID
-            continue
-        idList.append(followerID)
-        rateLimit = []
-        while rateLimit == []:
-            rateLimit = myComm.getRateLimitStatus()
-        print "Requests this hour:",rateLimit['remaining_hits']
-        while rateLimit['remaining_hits'] == 0:
-            wait = rateLimit['reset_time_in_seconds']-time.time()
-            print "Waiting for Twitter to grant requests:",wait,"s"
-            if wait >= 180:
-                time.sleep(180)
-            elif wait > 0:
-                time.sleep(wait)
-            else:
-                break
-        followerArray = []
-        while followerArray == []:
-            followerArray = myComm.getUserByID(idList)
-        for follower in followerArray:
-            myDB.addUser(follower)
+        if arg == "help":
+            sys.exit("Use like this: python getAllFollowers.py [file] [userID]")
+
+        followerIDs = []    
+        if arg == None:
+            fileWithIDs = open("tempIDs.txt","r")
+            followerIDs = fileWithIDs.readlines()
+            fileWithIDs.close()
+        for i in followerIDs:
+            followerIDs[n] = int(followerIDs[n].rstrip())        
+        else:
+            while followerIDs == []:
+                followerIDs = myComm.getIDsOfUsersFollowers(arg)
+        n = 0
+        for i in followerIDs:
             n+=1
-            print n,"Added user ID",followerID,"with name",
-            print follower.screen_name.encode('utf-8', 'ignore')        
-        del idList[:]
-        
+        print "Total users to request:",n
+        n = 0
+        idList = list() #API demands a list
+        for followerID in followerIDs:
+            if myDB.containsUserID(followerID):
+                print "Database already contains",followerID
+                continue
+            idList.append(followerID)
+            rateLimit = []
+            while rateLimit == []:
+                rateLimit = myComm.getRateLimitStatus()
+            print "Requests this hour:",rateLimit['remaining_hits']
+            while rateLimit['remaining_hits'] == 0:
+                wait = rateLimit['reset_time_in_seconds']-time.time()
+                print "Waiting for Twitter to grant requests:",wait,"s"
+                if wait >= 180:
+                    time.sleep(180)
+                elif wait > 0:
+                    time.sleep(wait)
+                else:
+                    break
+            followerArray = []
+            while followerArray == []:
+                followerArray = myComm.getUserByID(idList)
+            for follower in followerArray:
+                myDB.addUser(follower)
+                n+=1
+                print n,"Added user ID",followerID,"with name",
+                print follower.screen_name.encode('utf-8', 'ignore')        
+            del idList[:]
+
 
 if __name__ == "__main__":
-    getAllFollowersAsObjects()
+    try:
+        filename = sys.argv[1]
+    except IndexError:
+        filename = "listOfObjectsOfFollowersOfVladaRH.dat" #defaults to this output file
+    try:
+        IDs = sys.argv[2]
+    except IndexError:
+        IDs = None #defaults to fetching from a file called "tempIDs.txt" (see below)
+
+    GetAllFollowersAsObjects(filename,IDs)
     

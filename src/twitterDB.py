@@ -58,8 +58,11 @@ class TwitterDB:
     def containsUserID(self,query):
         users = self.getUsers()
         for user in users:
-            if user.id == query:
-                return True
+            try:
+                if user.id == query:
+                    return True
+            except AttributeError:
+                continue
         return False
         
     def getTweets(self):
@@ -86,9 +89,12 @@ class TwitterDB:
             except EOFError:
                 db.close()
                 return entry
-            if tweet.user.screen_name==username:
-                return tweet
-        return None
+            try:
+                if tweet.user.screen_name==username:
+                    return tweet
+            except AttributeError:
+                continue
+        return entry
 
     def getAllTweetsFromUser(self,username):
         db = open(self.database,'rb')
@@ -99,8 +105,11 @@ class TwitterDB:
             except EOFError:
                 db.close()
                 return array
-            if tweet.user.screen_name==username:
-                array.append(tweet)
+            try:
+                if tweet.user.screen_name==username:
+                    array.append(tweet)
+            except AttributeError:
+                continue
         return None
 
 def main():
@@ -112,7 +121,7 @@ def main():
     try:
         arg[2] = sys.argv[2]
     except IndexError:
-        arguemnt[2] = ""
+        arg[2] = ""
     try:
         arg[3] = sys.argv[3]
     except IndexError:
@@ -121,22 +130,29 @@ def main():
         arg[4] = sys.argv[4]
     except IndexError:
         arg[4] = ""
-
-	myDB = TwitterDB(arg[1])
     
+    myDB = TwitterDB(arg[1])
+
     if arg[2]=="get":
         if arg[3]=="all":
             if arg[4]=="":
                 for tweet in myDB.getTweets():
-                    print tweet.text
+                    try:
+                        print tweet.text
+                    except AttributeError:
+                        print "Program ran into unexpected not-a-tweet object."
             else:
-                for tweet in myDB.getAllTweetsFromUser(arg[4]):
-                    print tweet.text
+                tweets = myDB.getAllTweetsFromUser(arg[4])
+                for tweet in tweets:
+                    try:
+                        print tweet.text
+                    except AttributeError:
+                        print "Program ran into unexpected not-a-tweet object."
         else:
             print myDB.getTweet(arg[2]).text
     else:
         print "Use twitterDB like this: "
-        print "python twitterDB.py file get \[all\] \[USER\] to print tweets"
+        print "python twitterDB.py file get [all] [USER]"
         
 if __name__ == "__main__":
     main()

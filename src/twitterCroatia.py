@@ -20,13 +20,54 @@
 
 import twitterCommunication
 import twitterDB
-import sys #for commandline arguments
+import getAllFollowersAsObjects
+import sys
+import threading
 
-def getFollowersFromCroatia():
-    pass
+class TwitterCroatia:
+        
+    def __init__(self,userFile="userObjects.dat",twitterFile="tweetsFilename.dat"):
+        userObjectsDB = twitterDB.TwitterDB(userFile)
+        tweetObjectsDB = twitterDB.TwitterDB(twitterFile)
+        myComm = twitterCommunication.TwitterCommunication()
+        usernamesPassed = []
+        i = 0
+        while True:
+            arrayOfUserObjects = userObjectsDB.getUsers()
+            try:
+                username = arrayOfUserObjects[i].screen_name
+            except AttributeError:
+                print "Encountered an unexpected not-a-user object."
+                break
+            except IndexError:
+                print "No more users to add."
+                break
+            i+=1
+            print "Requesting followers of",username
+            if not username in usernamesPassed:
+                usernamesFollowers = getAllFollowersAsObjects.GetAllFollowersAsObjects(userFile,username)
+                usernamesTimeline = myComm.getTimeline(username)
+                for tweet in usernamesTimeline:
+                    tweetObjectsDB.addTweet(tweet)
+            usernamesPassed.append(username)
+            print "All tweets of",username,"added to file",twitterFile
+            print "All followers of",username,"added to file",userFile
+            print "Total number of users timelines & followers added so far:",i
 
-def getTweetsFromCroatia():
-    pass    
-    
+
 if __name__ == "__main__":
-    pass
+
+    try:
+        usersFilename = sys.argv[1]
+    except IndexError:
+        usersFilename = "userObjects.dat" #defaults to this output file for user objects
+        myDB = twitterDB.TwitterDB(usersFilename)
+        firstUserForDefaultDB = twitterCommunication.TwitterCommunication().getUserByName("sasastartrek")
+        myDB.addUser(firstUserForDefaultDB)
+
+    try:
+        tweetsFilename = sys.argv[2]
+    except IndexError:
+        tweetsFilename = "tweetObjects.dat" #defaults to this output file for tweet objects
+
+    TwitterCroatia(usersFilename,tweetsFilename)
