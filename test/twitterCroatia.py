@@ -24,15 +24,13 @@ import getAllFollowersAsObjects
 import sys
 import threading
 
-class TwitterCroatia:
+class getAllFollowers:
         
-    def __init__(self,userFile="userObjects.dat",twitterFile="tweetsFilename.dat"):
+    def __init__(self,userFile="userObjects.dat", depth):
         userObjectsDB = twitterDB.TwitterDB(userFile)
-        tweetObjectsDB = twitterDB.TwitterDB(twitterFile)
-        myComm = twitterCommunication.TwitterCommunication()
         usernamesPassed = []
         i = 0
-        while True:
+        while depth!=0:
             arrayOfUserObjects = userObjectsDB.getUsers()
             try:
                 username = arrayOfUserObjects[i].screen_name
@@ -45,18 +43,15 @@ class TwitterCroatia:
             i+=1
             print "Requesting followers of",username
             if not username in usernamesPassed:
+                #use another method for storing followers in a file:
                 usernamesFollowers = getAllFollowersAsObjects.GetAllFollowersAsObjects(userFile,username)
-                usernamesTimeline = myComm.getTimeline(username)
-                for tweet in usernamesTimeline:
-                    tweetObjectsDB.addTweet(tweet)
             usernamesPassed.append(username)
-            print "All tweets of",username,"added to file",twitterFile
             print "All followers of",username,"added to file",userFile
-            print "Total number of users timelines & followers added so far:",i
+            print "Total number of users followers added so far:",i
+            #depth-=1
 
 
-if __name__ == "__main__":
-
+def main():
     try:
         usersFilename = sys.argv[1]
     except IndexError:
@@ -64,10 +59,12 @@ if __name__ == "__main__":
         myDB = twitterDB.TwitterDB(usersFilename)
         firstUserForDefaultDB = twitterCommunication.TwitterCommunication().getUserByName("sasastartrek")
         myDB.addUser(firstUserForDefaultDB)
-
     try:
-        tweetsFilename = sys.argv[2]
+        depth = sys.argv[2]
     except IndexError:
-        tweetsFilename = "tweetObjects.dat" #defaults to this output file for tweet objects
+        depth = -1 #defaults to infinite loop
 
-    TwitterCroatia(usersFilename,tweetsFilename)
+    getAllFollowers(usersFilename, depth)
+
+if __name__ == "__main__":
+    main()
