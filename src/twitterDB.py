@@ -19,13 +19,8 @@
 """
 
 import pickle
-import sys #for command line options
-
-class unknownError():
-    
-    def __init__(self,Exception):
-        print "Unexpected error:", Exception
-        sys.exit("Process terminating.")
+import sys
+import getopt
 
 class TwitterDB:
 
@@ -33,14 +28,17 @@ class TwitterDB:
 
     def __init__(self,database):
         self.database=database
-        open(self.database,'ab').close()        
+        #open(self.database,'ab').close()        
         
     def addTweet(self,newTweet):
         tweets = self.getTweets()
         for tweet in tweets:
             if tweet.id == newTweet.id:
                 return False
-        db = open(self.database,'ab')
+        try:
+            db = open(self.database,'ab')
+        except:
+            raise DatabaseError
         pickle.dump(newTweet,db)
         db.close()
         return True
@@ -50,7 +48,10 @@ class TwitterDB:
         for user in users:
             if user.id == newUser.id:
                 return False
-        db = open(self.database,'ab')
+        try:
+            db = open(self.database,'ab')
+        except:
+            raise DatabaseError
         pickle.dump(newUser,db)
         db.close()
         return True
@@ -64,6 +65,13 @@ class TwitterDB:
             except AttributeError:
                 continue
         return False
+        
+    def howManyTweets(self):
+        tweets = self.getTweets()
+        i = 0
+        for tweet in tweets:
+            i+=1
+        return i
         
     def getTweets(self):
         db = open(self.database,'rb')
@@ -113,29 +121,13 @@ class TwitterDB:
         return None
 
 def main():
-    arg = [""]*5
-    try:
-        arg[1] = sys.argv[1]
-    except IndexError:
-        arg[1] = "help"
-    try:
-        arg[2] = sys.argv[2]
-    except IndexError:
-        arg[2] = ""
-    try:
-        arg[3] = sys.argv[3]
-    except IndexError:
-        arg[3] = ""
-    try:
-        arg[4] = sys.argv[4]
-    except IndexError:
-        arg[4] = ""
+    arg = getopt.getopt(sys.argv[1:],"")[1]
     
-    myDB = TwitterDB(arg[1])
+    myDB = TwitterDB(arg[0])
 
-    if arg[2]=="get":
-        if arg[3]=="all":
-            if arg[4]=="":
+    if arg[1]=="get":
+        if arg[2]=="all":
+            if arg[3]=="":
                 for tweet in myDB.getTweets():
                     try:
                         print tweet.text
@@ -149,7 +141,7 @@ def main():
                     except AttributeError:
                         print "Program ran into unexpected not-a-tweet object."
         else:
-            print myDB.getTweet(arg[2]).text
+            print myDB.getTweet(arg[1]).text
     else:
         print "Use twitterDB like this: "
         print "python twitterDB.py file get [all] [USER]"

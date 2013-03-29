@@ -21,46 +21,37 @@
 import twitter
 import sys
 import urllib2
+import getopt
 
-#Changes made to python-twitter library (v.0.9) to enable pagination:
-#def GetFriends(self, user=None, userid=None, cursor=-1, maxUsers=100):
-#def GetFollowers(self, user=None, page=None):
 
-class twitterError(Exception):
+class TwitterError(Exception):
 
     def __init__(self,Exception):
-        print "Twitter sent a message:",Exception.message[0]['message'], "; Code:",Exception.message[0]['code']
-        if Exception.message[0]['code']==34:
-            sys.exit("Unknown user, process terminating.")
+        pass
         
         
 class TwitterCommunication:
     
-    def __init__(self):        
-        try:
-            authFile = open("authorisation",'r')
-            auth_ck = authFile.readline().rstrip()
-            auth_cs = authFile.readline().rstrip()
-            auth_atk = authFile.readline().rstrip()
-            auth_ats = authFile.readline().rstrip()
-            authFile.close()
-            self.api = twitter.Api(
+    def __init__(self, auth_ck=None, auth_cs=None, auth_atk=None, auth_ats=None):        
+        self.timelineDictionary = {}
+        self.api = twitter.Api(
                 consumer_key=auth_ck, 
                 consumer_secret=auth_cs,
                 access_token_key=auth_atk, 
                 access_token_secret=auth_ats)
-        except IOError:
-            self.api = twitter.Api()
 
     def getTimeline(self, username=None):
         array = []
         if username == None:
             print "getTimeline: Argument needed: username"
             return array
+        if username in self.timelineDictionary:
+            return self.timelineDictionary[username]
         try:
             array = self.api.GetUserTimeline(username)
         except twitter.TwitterError as e:
-            twitterError(e)
+            TwitterError(e)
+        self.timelineDictionary[username] = array
         return array
 
     def getTweet(self, username=None, tweetID=0):
@@ -101,7 +92,7 @@ class TwitterCommunication:
         try:
             data = self.api.GetFollowerIDs(user=username,cursor=-1)
         except twitter.TwitterError as e:
-            twitterError(e)
+            TwitterError(e)
             return []
         except urllib2.URLError as e:
             print e
@@ -111,7 +102,7 @@ class TwitterCommunication:
             try:
                 data = self.api.GetFollowerIDs(user=username,cursor=data['next_cursor'])
             except twitter.TwitterError as e:
-                twitterError(e)
+                TwitterError(e)
             except urllib2.URLError as e:
                 print e
             bigData.extend(data['ids'])
@@ -125,7 +116,7 @@ class TwitterCommunication:
         try:
             data = self.api.GetFriendIDs(user=username,cursor=-1)
         except twitter.TwitterError as e:
-            twitterError(e)
+            TwitterError(e)
             return []
         except urllib2.URLError as e:
             print e
@@ -135,7 +126,7 @@ class TwitterCommunication:
             try:
                 data = self.api.GetFriendIDs(user=username,cursor=data['next_cursor'])
             except twitter.TwitterError as e:
-                twitterError(e)
+                TwitterError(e)
             except urllib2.URLError as e:
                 print e
             bigData.extend(data['ids'])
@@ -167,24 +158,15 @@ class TwitterCommunication:
             return []
     
 def main():
-    arg = [""]*4
-    try:
-        arg[1] = sys.argv[1]
-    except IndexError:
-        arg[1] = "help"
-    try:
-        arg[2] = sys.argv[2]
-    except IndexError:
-        arg[2] = ""
+    arg = getopt.getopt(sys.argv[1:],"")[1]
+    connection = TwitterCommunication(arg[2],arg[3],arg[4],arg[5])
 
-    connection = TwitterCommunication()
-
-    if arg[1] == "newest":
+    if arg[0] == "newest":
         try:
-            print connection.getTweetText(arg[2], 0)
+            print connection.getTweetText(arg[1], 0)
         except UnicodeEncodeError:
-            print connection.getTweetText(arg[2], 0).encode('utf-8', 'ignore')
-    elif arg[1] == "where" and arg[2] != "":
+            print connection.getTweetText(arg[1], 0).encode('utf-8', 'ignore')
+    elif arg[0] == "where" and arg[1] != "":
         noneFound = True
         i=0
         while 1:
@@ -213,12 +195,12 @@ def main():
         if noneFound:
             print "No locations available for this account."
     
-    elif arg[1] == "friends" and arg[2] != "":
-        array = connection.getIDsOfUsersFollowedByUser(arg[2])
+    elif arg[0] == "friends" and arg[1] != "":
+        array = connection.getIDsOfUsersFollowedByUser(arg[1])
         for k in array:
             print k
-    elif arg[1] == "followers" and arg[2] != "":
-        array = connection.getIDsOfUsersFollowers(arg[2])
+    elif arg[0] == "followers" and arg[1] != "":
+        array = connection.getIDsOfUsersFollowers(arg[1])
         for k in array:
             print k
     else:
@@ -227,6 +209,7 @@ def main():
         print "\"followers X\" to print all IDs that follow X"         
         print "\"newest X\" to print the newest tweet of X"
         print "\"where X\" to print the locations of the user Xs last tweets"
+        print "Optional after command: auth_ck auth_cs auth_atk auth_ats"
 
 
 if __name__ == "__main__":

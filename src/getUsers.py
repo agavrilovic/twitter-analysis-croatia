@@ -19,23 +19,21 @@
 """
 
 import twitterCommunication
-import twitterDB
 import sys
 from sets import Set
+import getopt
+import time
 
-class getUsers:
+class GetUsers:
 
-    def __init__(DBid, depth):
-        userObjectsDB = twitterDB.TwitterDB(DBid)
-        myComm = twitterCommunication.TwitterCommunication()
-        depthLoop(userObjectsDB, depth)
-        
+    def __init__(self, auth_ck=None, auth_cs=None, auth_atk=None, auth_ats=None):
+        self.myComm = twitterCommunication.TwitterCommunication(auth_ck, auth_cs, auth_atk, auth_ats)
         
     def GetAllFollowersAsObjects(self, username=None):        
         followersToReturn = []
         followerIDs = []    
         while followerIDs == []:
-            followerIDs = myComm.getIDsOfUsersFollowers(username)
+            followerIDs = self.myComm.getIDsOfUsersFollowers(username)
         numberOfFollowers = 0
         for i in followerIDs:
             numberOfFollowers+=1
@@ -43,9 +41,6 @@ class getUsers:
         n = 0
         idList = list() #API demands a list
         for followerID in followerIDs:
-            if self.userObjectsDB.containsUserID(followerID):
-                print "Database already contains",followerID
-                continue
             idList.append(followerID)
             self.checkRequestLimit()
             followerArray = []
@@ -59,6 +54,7 @@ class getUsers:
             
 
     def checkRequestLimit(self):
+        rateLimit = self.myComm.getRateLimitStatus()
         rateLimit = []
         print "Requests this hour:",rateLimit['remaining_hits']
         while rateLimit == []:
@@ -74,8 +70,10 @@ class getUsers:
                     break    
 
 
-    def depthLoop(self, userObjectsDB, depth=0, username):
+    def depthLoop(self, depth=0, username=None):
         allFollowers[0]=[username]
+        if username == None or depth == 0:
+            return allFollowers
         for d in range(depth):
             for follower in allFollowers[d]:
                 allFollowers[d+1] = self.getAllFollowersAsObjects(follower)
@@ -86,22 +84,9 @@ class getUsers:
         return allFollowersSet
 
 def main():
-    try:
-        DBid = sys.argv[1]
-    except IndexError:
-        DBid = "userObjects.dat" #defaults to this output file for user objects
-
-    try:
-        depth = sys.argv[2]
-    except IndexError:
-        depth = 0
-
-    try:
-        username = sys.argv[3]
-    except IndexError:
-        username = "VladaRH"
-
-    return getUsers(DBid, depth, username)
+    arg = getopt.getopt(sys.argv[1:],"")[1]
+    getUsers = GetUsers(arg[0],arg[1],arg[2],arg[3])
+    print getUsers.depthLoop(arg[4],arg[5])
 
 if __name__ == "__main__":
     main()
